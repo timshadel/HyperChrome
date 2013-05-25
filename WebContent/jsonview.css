@@ -23,6 +23,10 @@ body {
   color: green;
 }
 
+.type-hidden {
+  color: lightgray;
+}
+
 .callback-function {
   color: gray;
 }
@@ -41,6 +45,10 @@ body {
 
 .collapsible {
   margin-left: 2em;
+}
+
+form.collapsible {
+  margin-left: 0em;
 }
 
 .hoverable {
