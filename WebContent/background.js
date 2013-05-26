@@ -6,7 +6,7 @@ function getDefaultTheme(callback) {
 		if (xhr.readyState == 4)
 			callback(xhr.responseText);
 	};
-	xhr.open("GET", "jsonview.css", true);
+	xhr.open("GET", "hyperview.css", true);
 	xhr.send(null);
 }
 

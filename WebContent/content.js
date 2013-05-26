@@ -41,7 +41,7 @@ function displayError(error, loc, offset) {
 
 function displayUI(theme, html) {
 	var statusElement, toolboxElement, expandElement, reduceElement, viewSourceElement, optionsElement, content = "";
-	content += '<link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL("jsonview-core.css") + '">';
+	content += '<link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL("hyperview-core.css") + '">';
 	content += "<style>" + theme + "</style>";
 	content += html;
 	document.body.innerHTML = content;
