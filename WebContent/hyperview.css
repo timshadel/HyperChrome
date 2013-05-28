@@ -47,6 +47,10 @@ body {
   background-color: rgba(235, 249, 238, 1);
 }
 
+.action {
+  background-color: rgba(249, 235, 238, 1);
+}
+
 .collapsible {
   margin-left: 2em;
 }

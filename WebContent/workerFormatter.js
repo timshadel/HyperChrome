@@ -62,7 +62,7 @@ function loadSrc(srcId, src) {
 
 function actionToHTML(json) {
 	keys = Object.keys(json), output = '<div class="collapser"></div><span class="ellipsis"></span>';
-	output += '<form action="' + json.action + '"';
+	output += '<div class="action"><form action="' + json.action + '"';
 	if (json.method) output += ' method="' + json.method + '"';
 	if (json.type) output += ' enctype="' + json.type + '"';
 	output += ' class="collapsible">';
@@ -120,9 +120,10 @@ function actionToHTML(json) {
 	output += '<li><input type="submit" value="Send"></li></form>';
 	if (json.type === 'application/json') {
 		output += '<script>';
-		output += '// something here which hooks the form submit and alters it.';
+		output += '// something here which hooks the form submit and alters it to submit json.';
 		output += '</script>';
 	}
+	output += '</div>';
 	return output;
 }
 
@@ -143,6 +144,7 @@ function objectToHTML(json) {
 	    return output;
 		} else if (isImage) {
 	    output += '<div class="src"><image src="' + json.src + '"></div>';
+	    return output;
 		}
 	}
 
