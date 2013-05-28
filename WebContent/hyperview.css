@@ -43,6 +43,10 @@ body {
   content: " … ";
 }
 
+.src {
+  background-color: rgba(235, 249, 238, 1);
+}
+
 .collapsible {
   margin-left: 2em;
 }

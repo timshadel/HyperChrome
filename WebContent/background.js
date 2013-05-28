@@ -68,13 +68,21 @@ function init() {
 
 			function onWorkerFormatterMessage(event) {
 				var message = event.data;
+				if (message.src) {
+					port.postMessage({
+						onsrc : true,
+						src : message.src,
+						srcId : message.srcId
+					});
+					return;
+				}
 				workerFormatter.removeEventListener("message", onWorkerFormatterMessage, false);
 				workerFormatter.terminate();
 				if (message.html)
 					port.postMessage({
 						onjsonToHTML : true,
 						html : message.html,
-						theme : localStorage.theme
+						docId: message.docId
 					});
 				if (message.error) {
 					workerJSONLint = new Worker("workerJSONLint.js");
@@ -86,7 +94,8 @@ function init() {
 			if (msg.init)
 				port.postMessage({
 					oninit : true,
-					options : localStorage.options ? JSON.parse(localStorage.options) : {}
+					options : localStorage.options ? JSON.parse(localStorage.options) : {},
+					theme : localStorage.theme
 				});
 			if (msg.copyPropertyPath) {
 				path = msg.path;
@@ -97,6 +106,7 @@ function init() {
 				workerFormatter.addEventListener("message", onWorkerFormatterMessage, false);
 				workerFormatter.postMessage({
 					json : json,
+					docId: msg.docId,
 					fnName : msg.fnName
 				});
 			}

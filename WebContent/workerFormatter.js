@@ -53,11 +53,18 @@ function arrayToHTML(json) {
 	return output;
 }
 
+function loadSrc(srcId, src) {
+	postMessage({
+		srcId: "#"+srcId,
+		src : src
+	});
+}
+
 function actionToHTML(json) {
 	keys = Object.keys(json), output = '<div class="collapser"></div><span class="ellipsis"></span>';
 	output += '<form action="' + json.action + '"';
 	if (json.method) output += ' method="' + json.method + '"';
-	if (json.type) output += ' type="' + json.type + '"';
+	if (json.type) output += ' enctype="' + json.type + '"';
 	output += ' class="collapsible">';
 	if (json.input) {
 		var fields = Object.keys(json.input)
@@ -111,11 +118,25 @@ function actionToHTML(json) {
 		};
 	}
 	output += '<li><input type="submit" value="Send"></li></form>';
+	if (json.type === 'application/json') {
+		output += '<script>';
+		output += '// something here which hooks the form submit and alters it.';
+		output += '</script>';
+	}
 	return output;
 }
 
 function objectToHTML(json) {
 	var i, key, length, keys = Object.keys(json), output = '<div class="collapser"></div>{<span class="ellipsis"></span><ul class="obj collapsible">', hasContents = false;
+
+	if (json.src && json.type && json.type.match(/json/)) {
+		output = '<div class="collapser"></div>' + decorateWithSpan(JSON.stringify(json), "type-hidden") + '<span class="ellipsis"></span><ul class="obj collapsible">';
+    var srcId = 'src' + Math.floor(Math.random() * 1000000);
+    output += '<div id="' + srcId + '" class="src"></div>';
+    loadSrc(srcId, json.src);
+    return output;
+	}
+
 	for (i = 0, length = keys.length; i < length; i++) {
 		key = keys[i];
 		hasContents = true;
@@ -123,6 +144,8 @@ function objectToHTML(json) {
 		output += '<span class="property">' + htmlEncode(key) + '</span>: ';
 		if (key === 'href') {
 			output += decorateHref(json[key]);
+    } else if (key === 'src') {
+      output += decorateHref(json[key]);
 		} else {
 			output += valueToHTML(json[key]);
 		}
@@ -143,9 +166,7 @@ function jsonToHTML(json, fnName) {
 	var output = '';
 	if (fnName)
 		output += '<div class="callback-function">' + fnName + '(</div>';
-	output += '<div id="json">';
 	output += valueToHTML(json);
-	output += '</div>';
 	if (fnName)
 		output += '<div class="callback-function">)</div>';
 	return output;
@@ -163,6 +184,7 @@ addEventListener("message", function(event) {
 	}
 	postMessage({
 		onjsonToHTML : true,
+		docId: event.data.docId,
 		html : jsonToHTML(object, event.data.fnName)
 	});
 }, false);

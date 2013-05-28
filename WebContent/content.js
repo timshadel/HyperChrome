@@ -39,11 +39,16 @@ function displayError(error, loc, offset) {
 	history.replaceState({}, "", "#");
 }
 
-function displayUI(theme, html) {
+function injectHTML(docId, html) {
+	var hook = document.querySelector(docId);
+	hook.innerHTML = html;
+}
+
+function displayTheme(theme) {
 	var statusElement, toolboxElement, expandElement, reduceElement, viewSourceElement, optionsElement, content = "";
 	content += '<link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL("hyperview-core.css") + '">';
 	content += "<style>" + theme + "</style>";
-	content += html;
+	content += "<div id='root'></div>";
 	document.body.innerHTML = content;
 	collapsers = document.querySelectorAll("#json .collapsible .collapsible");
 	statusElement = document.createElement("div");
@@ -112,15 +117,18 @@ function extractData(rawText) {
 	}
 }
 
-function processData(data) {
+function processData(data, location, docId) {
 	var xhr, jsonText;
 	
-	function formatToHTML(fnName, offset) {
+	console.log('startProc', docId);
+	function formatToHTML(fnName, offset, docId) {
 		if (!jsonText)
 			return;	
+		console.log('posting', docId);
 		port.postMessage({
 			jsonToHTML : true,
 			json : jsonText,
+			docId : docId,
 			fnName : fnName,
 			offset : offset
 		});
@@ -138,15 +146,16 @@ function processData(data) {
 					data = extractData(this.responseText);
 					if (data) {
 						jsonText = data.text;
-						formatToHTML(data.fnName, data.offset);
+						console.log('process', jsonText, location, docId);
+						formatToHTML(data.fnName, data.offset, docId);
 					}
 				}
 			};
-			xhr.open("GET", document.location.href, true);
+			xhr.open("GET", location, true);
 			xhr.send(null);
 		} else if (data) {
 			jsonText = data.text;
-			formatToHTML(data.fnName, data.offset);
+			formatToHTML(data.fnName, data.offset, docId);
 		}
 }
 
@@ -250,15 +259,21 @@ function onContextMenu() {
 	}
 }
 
-function init(data) {
+function init(data, initLocation, initId) {
 	port.onMessage.addListener(function(msg) {
+		console.log('msg_in', msg, initLocation, initId);
 		if (msg.oninit) {
 			options = msg.options;
-			processData(data);
+			processData(data, initLocation, initId);
+			displayTheme(msg.theme);
+		}
+		if (msg.onsrc) {
+			processData(null, msg.src, msg.srcId);
 		}
 		if (msg.onjsonToHTML)
 			if (msg.html) {
-				displayUI(msg.theme, msg.html);
+				console.log('msg', msg);
+				injectHTML(msg.docId, msg.html);
 			} else if (msg.json)
 				port.postMessage({
 					getError : true,
@@ -280,7 +295,7 @@ function load() {
 		child = document.body.children.length ? document.body.childNodes[0] : document.body;
 		data = extractData(child.innerText);
 		if (data)
-			init(data);
+			init(data, document.location.href, "#root");
 	}
 }
 
