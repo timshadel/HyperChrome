@@ -129,12 +129,21 @@ function actionToHTML(json) {
 function objectToHTML(json) {
 	var i, key, length, keys = Object.keys(json), output = '<div class="collapser"></div>{<span class="ellipsis"></span><ul class="obj collapsible">', hasContents = false;
 
-	if (json.src && json.type && json.type.match(/json/)) {
-		output = '<div class="collapser"></div>' + decorateWithSpan(JSON.stringify(json), "type-hidden") + '<span class="ellipsis"></span><ul class="obj collapsible">';
-    var srcId = 'src' + Math.floor(Math.random() * 1000000);
-    output += '<div id="' + srcId + '" class="src"></div>';
-    loadSrc(srcId, json.src);
-    return output;
+	if (json.src && json.type) {
+		var isJson = json.type.match(/json/);
+		var isImage = json.type.match(/image/);
+		var shouldEmbed = isImage || isJson;
+		if (shouldEmbed) {
+			output = '<div class="collapser"></div>' + decorateWithSpan(JSON.stringify(json), "type-hidden") + '<span class="ellipsis"></span><ul class="obj collapsible">';
+		}
+		if (isJson) {
+	    var srcId = 'src' + Math.floor(Math.random() * 1000000);
+	    output += '<div id="' + srcId + '" class="src"></div>';
+	    loadSrc(srcId, json.src);
+	    return output;
+		} else if (isImage) {
+	    output += '<div class="src"><image src="' + json.src + '"></div>';
+		}
 	}
 
 	for (i = 0, length = keys.length; i < length; i++) {
