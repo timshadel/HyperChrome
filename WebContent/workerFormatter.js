@@ -84,15 +84,18 @@ function actionToHTML(json) {
 			if (type === 'textarea') {
 				output += '<br><textarea name="' + name + '"></textarea';
 			} else if (type === 'select') {
-				output += '<select name="' + name + '">';
+				output += '<select name="' + name + '"';
 			} else {
 				output += '<input name="' + name + '" type="' + type + '"'
 			}
 			if (value) {
 				output += ' value="' + value + '"'
 			}
-			if (type.required) {
-				output += ' required'
+			if (field.required) {
+				output += ' required';
+			}
+			if (field.multiple) {
+				output += ' multiple';
 			}
 			output += '>';
 			if (type === 'hidden') {
