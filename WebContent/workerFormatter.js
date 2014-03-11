@@ -60,6 +60,95 @@ function loadSrc(srcId, src) {
 	});
 }
 
+function inputToHTML(json, scope) {
+	if (!scope) { scope = ''; }
+	var output = '';
+	var fields = Object.keys(json)
+	for (var i = 0; i < fields.length; i++) {
+		var name = scope + fields[i];
+		var field = json[fields[i]];
+		var type, value;
+		if (typeof field === 'object') {
+			if (field.input) {
+				output += inputToHTML(field.input, name + '.');
+				continue;
+			} else {
+				type = (field.type || 'text');
+				value = field.value;
+			}
+		} else {
+			type = 'hidden';
+			value = field;
+		}
+		output += '<li><div class="hoverable">';
+		output += '<span class="property">' + htmlEncode(name) + '</span> ';
+		if (type === 'textarea') {
+			output += '<br><textarea name="' + name + '"></textarea';
+		} else if (type === 'select') {
+			output += '<select name="' + name + '"';
+		} else {
+			output += '<input name="' + name + '" type="' + type + '"'
+		}
+		if (value) {
+			output += ' value="' + value + '"'
+		}
+		if (field.required) {
+			output += ' required';
+		}
+		if (field.multiple) {
+			output += ' multiple';
+		}
+		output += '>';
+		if (type === 'hidden') {
+			output += decorateWithSpan(value, "type-hidden");
+		}
+		if (type === 'select') {
+			var options = field.options;
+			if (options.collection) {
+				options = options.collection;
+			}
+			for (var o = 0; o < options.length; o++) {
+				var option = options[o];
+				var ovalue, otext;
+				if (typeof option === 'object') {
+					// ovalue
+					if (option.href) {
+						ovalue = option.href;
+					}
+					if (option.id) {
+						ovalue = option.id;
+					}
+					if (option.value) {
+						ovalue = option.value;
+					}
+
+					// otext
+					if (option.description) {
+						otext = option.description;
+					}
+					if (option.title) {
+						otext = option.title;
+					}
+					if (option.name) {
+						otext = option.name;
+					}
+					if (option.text) {
+						otext = option.text;
+					}
+				} else {
+					ovalue = option;
+					otext = option;
+				}
+				output += '<option value="' + ovalue + '">' + otext + '</option>';
+			}
+			output += "</select>";
+		}
+		output += '</div></li>';
+	}
+
+	return output;
+}
+
 function actionToHTML(json) {
 	keys = Object.keys(json), output = '<div class="collapser"></div><span class="ellipsis"></span>';
 	output += '<div class="action"><form action="' + json.action + '"';
@@ -67,58 +156,7 @@ function actionToHTML(json) {
 	if (json.type) output += ' enctype="' + json.type + '"';
 	output += ' class="collapsible">';
 	if (json.input) {
-		var fields = Object.keys(json.input)
-		for (var i = 0; i < fields.length; i++) {
-			var name = fields[i];
-			var field = json.input[fields[i]];
-			var type, value;
-			if (typeof field === 'object') {
-				type = (field.type || 'text');
-				value = field.value;
-			} else {
-				type = 'hidden';
-				value = field;
-			}
-			output += '<li><div class="hoverable">';
-			output += '<span class="property">' + htmlEncode(name) + '</span> ';
-			if (type === 'textarea') {
-				output += '<br><textarea name="' + name + '"></textarea';
-			} else if (type === 'select') {
-				output += '<select name="' + name + '"';
-			} else {
-				output += '<input name="' + name + '" type="' + type + '"'
-			}
-			if (value) {
-				output += ' value="' + value + '"'
-			}
-			if (field.required) {
-				output += ' required';
-			}
-			if (field.multiple) {
-				output += ' multiple';
-			}
-			output += '>';
-			if (type === 'hidden') {
-				output += decorateWithSpan(value, "type-hidden");
-			}
-			if (type === 'select') {
-				var options = field.options;
-				for (var o = 0; o < options.length; o++) {
-					var option = options[o];
-					var ovalue, otext;
-					if (typeof option === 'object') {
-						ovalue = option.value;
-						otext = option.text;
-					} else {
-						ovalue = option;
-						otext = option;
-					}
-					output += '<option value="' + ovalue + '">' + otext + '</option>';
-				}
-				output += "</select>";
-			}
-			output += '</div></li>';
-		};
+		output += inputToHTML(json.input);
 	}
 	output += '<li><input type="submit" value="Send"></li></form>';
 	if (json.type === 'application/json') {
