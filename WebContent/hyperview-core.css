@@ -125,3 +125,7 @@ li {
 	vertical-align: bottom;
 	cursor: pointer;
 }
+
+input[type="submit"] {
+	background-color: rgba(235, 238, 249, 1);
+}
