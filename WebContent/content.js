@@ -120,11 +120,9 @@ function extractData(rawText) {
 function processData(data, location, docId) {
 	var xhr, jsonText;
 	
-	console.log('startProc', docId);
 	function formatToHTML(fnName, offset, docId) {
 		if (!jsonText)
 			return;	
-		console.log('posting', docId);
 		port.postMessage({
 			jsonToHTML : true,
 			json : jsonText,
@@ -146,7 +144,6 @@ function processData(data, location, docId) {
 					data = extractData(this.responseText);
 					if (data) {
 						jsonText = data.text;
-						console.log('process', jsonText, location, docId);
 						formatToHTML(data.fnName, data.offset, docId);
 					}
 				}
@@ -261,7 +258,10 @@ function onContextMenu() {
 
 function init(data, initLocation, initId) {
 	port.onMessage.addListener(function(msg) {
-		console.log('msg_in', msg, initLocation, initId);
+		if (msg.log) {
+			console.log.apply(console, msg.log);
+			return;
+		}
 		if (msg.oninit) {
 			options = msg.options;
 			processData(data, initLocation, initId);
@@ -272,7 +272,6 @@ function init(data, initLocation, initId) {
 		}
 		if (msg.onjsonToHTML)
 			if (msg.html) {
-				console.log('msg', msg);
 				injectHTML(msg.docId, msg.html);
 			} else if (msg.json)
 				port.postMessage({

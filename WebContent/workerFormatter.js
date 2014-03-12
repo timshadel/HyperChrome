@@ -4,6 +4,11 @@
  * Original author: Benjamin Hollis
  */
 
+function log() {
+	var args = Array.prototype.slice.call(arguments);
+	postMessage({ log: args });
+}
+
 function htmlEncode(t) {
 	return t != null ? t.toString().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 }
@@ -61,7 +66,7 @@ function loadSrc(srcId, src) {
 }
 
 function actionToHTML(json) {
-	keys = Object.keys(json), output = '<div class="collapser"></div><span class="ellipsis"></span>';
+	var keys = Object.keys(json), output = '<div class="collapser"></div><span class="ellipsis"></span>';
 	output += '<div class="action"><form action="' + json.action + '"';
 	if (json.method) output += ' method="' + json.method + '"';
 	if (json.type) output += ' enctype="' + json.type + '"';
@@ -72,12 +77,16 @@ function actionToHTML(json) {
 			var name = fields[i];
 			var field = json.input[fields[i]];
 			var type, value;
-			if (typeof field === 'object') {
-				type = (field.type || 'text');
+			if (typeof field === 'object' && field.type) {
+				type = field.type;
 				value = field.value;
 			} else {
 				type = 'hidden';
-				value = field;
+				if (typeof field === 'object') {
+					value = JSON.stringify(JSON.stringify(field));
+				} else {
+					value = field;
+				}
 			}
 			output += '<li><div class="hoverable">';
 			output += '<span class="property">' + htmlEncode(name) + '</span> ';
@@ -107,8 +116,25 @@ function actionToHTML(json) {
 					var option = options[o];
 					var ovalue, otext;
 					if (typeof option === 'object') {
-						ovalue = option.value;
-						otext = option.text;
+						// ovalue
+						if (option.value) {
+			        ovalue = option.value;
+						} else if (option.href) {
+			        ovalue = option.href;
+						} else if (option.id) {
+			        ovalue = option.id;
+						}
+
+						// otext
+						if (option.text) {
+			        otext = option.text;
+						} else if (option.name) {
+			        otext = option.name;
+						} else if (option.title) {
+			        otext = option.title;
+						} else if (option.description) {
+			        otext = option.description;
+						}
 					} else {
 						ovalue = option;
 						otext = option;
@@ -129,6 +155,7 @@ function actionToHTML(json) {
 	output += '</div>';
 	return output;
 }
+
 
 function objectToHTML(json) {
 	var i, key, length, keys = Object.keys(json), output = '<div class="collapser"></div>{<span class="ellipsis"></span><ul class="obj collapsible">', hasContents = false;

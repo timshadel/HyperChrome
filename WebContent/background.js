@@ -68,6 +68,10 @@ function init() {
 
 			function onWorkerFormatterMessage(event) {
 				var message = event.data;
+				if (message.log) {
+					port.postMessage(message);
+					return;
+				}
 				if (message.src) {
 					port.postMessage({
 						onsrc : true,
